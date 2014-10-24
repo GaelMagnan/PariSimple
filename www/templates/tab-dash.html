@@ -1,0 +1,9 @@
+<ion-view title="Dashboard">
+ <ion-nav-buttons side="right"><button ng-click="logout()">Logout</button></ion-nav-buttons>
+  <ion-content class="padding">
+    <h1>Events</h1>
+    <ion-list>
+        <ion-item ng-repeat='mess in messages track by $index'><sp-event sp-eventMsg='mess'></sp-event></ion-item>
+    </ion-list>
+  </ion-content>
+</ion-view>
