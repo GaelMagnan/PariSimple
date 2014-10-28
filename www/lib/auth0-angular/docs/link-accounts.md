@@ -1,6 +1,6 @@
 ## Linking Accounts
 
-In order to link two accounts, in a controller create a link method (make sure to have the auth object injected):
+In order to link two accounts, create a link method in a controller (make sure to have the `auth` object injected):
 
 ```js
 $scope.link = function () {
@@ -17,17 +17,17 @@ $scope.link = function () {
 };
 ```
 
-Then in your view create an anchor:
+Then, create an anchor in your view:
 
 ```html
 <a ng-click="link()">link account</a>
 ```
 
-When the user clicks on that anchor, they will be prompted to enter the credentials the second account they want to join. 
+When the user clicks on that anchor, they will be prompted to enter the credentials for the account they want to link. 
 
 ### Restricting Selection
 
-You may want to add a connection parameter to restrict user election. For instance, you can create a view that looks like this:
+You may want to add a `connection` parameter to restrict user selection. For instance, you can create a view that looks like this:
 
 ```html
 <a ng-click="linkGoogle()">Link your Google Account</a>
@@ -63,5 +63,3 @@ $scope.linkTwitter = function () {
     // TODO Handle error
   }, 'Auth0');
 ```
-
-So, on that way you limit the choice of the provider to use.

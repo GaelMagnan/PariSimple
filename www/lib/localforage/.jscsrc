@@ -2,8 +2,6 @@
     "disallowSpacesInAnonymousFunctionExpression": {
         "beforeOpeningRoundBrace": true
     },
-    "disallowTrailingComma": true,
-    "requireLineFeedAtFileEnd": true,
     "requireSpaceAfterKeywords": [
         "if",
         "else",
@@ -19,10 +17,5 @@
     "requireSpacesInConditionalExpression": true,
     "requireSpacesInFunctionExpression": {
         "beforeOpeningCurlyBrace": true
-    },
-    "safeContextKeyword": ["globalObject", "self"],
-    "validateQuoteMarks": {
-        "escape": true,
-        "mark": "'"
     }
 }

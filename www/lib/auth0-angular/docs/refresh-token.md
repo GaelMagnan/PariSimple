@@ -45,7 +45,7 @@ angular.module('myApp', ['auth0', 'angular-jwt'])
   });
 ````
 
-### 4. Using the Refresh Token on page refresh is JWT is expired
+### 4. Using the Refresh Token on page refresh if the JWT is expired
 
 Once the page is refreshed, you want the user to stay logged in. For that, if the JWT is expired, you'll use the `refreshToken` to get a new one:
 

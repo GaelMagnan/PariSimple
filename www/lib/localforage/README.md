@@ -17,14 +17,11 @@ To use localForage, just drop a single JavaScript file into your page:
 ```
 
 Download the [latest localForage from GitHub](https://github.com/mozilla/localForage/releases/latest), or install with
-[npm](https://www.npmjs.org/) or [bower](http://bower.io):
+[bower](http://bower.io):
 
 ```bash
-npm install localforage
 bower install localforage
 ```
-
-localForage is compatible with [browserify](http://browserify.org/).
 
 ## Supported Browsers/Platforms
 
@@ -32,7 +29,7 @@ localForage works in all modern browsers (IE 8 and above).
 _Asynchronous storage_ is available in all browsers **in bold**, with
 localStorage fallback in parentheses.
 
-* **Android Browser 2.1**
+* **Android Browser 2.1** 
 * **Blackberry 7**
 * **Chrome 23** (Chrome 4.0+ with localStorage)
 * **Chrome for Android 32**
@@ -54,7 +51,7 @@ use asynchronous storage. Pretty slick!
 ## Support
 
 Lost? Need help? Try the
-[localForage API documentation](https://mozilla.github.io/localForage).
+[localForage API documentation](http://mozilla.github.io/localForage).
 
 If you're stuck using the library, running the tests, or want to contribute,
 to localForage, you can visit
@@ -95,20 +92,6 @@ alert(value);
 localforage.getItem('key', alert);
 ```
 
-Note that callbacks in localForage are Node-style (error argument first) since
-`0.9.3`. This means if you're using callbacks, your code should look like this:
-
-```javascript
-// Use err as your first argument.
-localforage.getItem('key', function(err, value) {
-    if (err) {
-        console.error('Oh noes!');
-    }
-
-    alert(value);
-});
-```
-
 You can store any type in localForage; you aren't limited to strings like in
 localStorage. Even if localStorage is your storage backend, localForage
 automatically does `JSON.parse()` and `JSON.stringify()` when getting/setting
@@ -128,18 +111,6 @@ function doSomethingElse(value) {
 localforage.setItem('key', 'value').then(doSomethingElse);
 ```
 
-Note that with Promises, `err` is not the first argument to your function.
-Instead, you handle an error with the rejection part of the Promise:
-
-```javascript
-// A full setItem() call with Promises.
-localforage.setItem('key', 'value').then(function(value) {
-    alert(value + ' was set!');
-}, function(error) {
-    console.error(error);
-});
-```
-
 localForage relies on native [ES6 Promises](http://www.promisejs.org/), but
 [ships with an awesome polyfill](https://github.com/jakearchibald/ES6-Promises)
 for browsers that don't support ES6 Promises yet.
@@ -153,7 +124,7 @@ JSON, as well as ArrayBuffers, Blobs, and TypedArrays. Check the
 All types are supported in every storage backend, though storage limits in
 localStorage make storing many large Blobs impossible.
 
-[api]: https://mozilla.github.io/localForage/#setitem
+[api]: http://mozilla.github.io/localForage/#setitem
 
 ## Driver Selection (i.e. forcing localStorage)
 
@@ -161,23 +132,23 @@ For development, it can be easier to use the
 slower--but easier to debug--localStorage driver (mostly because localStorage
 can easily be inspected from the console). You can use the `setDriver()` method
 to change the driver localForage is using at any time.
-
+    
 ```javascript
 // If you aren't using JS modules, things are loaded synchronously.
-localforage.setDriver(localforage.LOCALSTORAGE);
-alert(localforage.driver());
+localforage.setDriver('localStorageWrapper');
+alert(localforage.driver);
   => 'localStorageWrapper'
 
 // If you're using modules, things load asynchronously, so you should use
 // callbacks or promises to ensure things have loaded.
-localforage.setDriver(localforage.LOCALSTORAGE, function() {
-    alert(localforage.driver());
+localforage.setDriver('localStorageWrapper', function() {
+    alert(localforage.driver);
 });
   => 'localStorageWrapper'
 
 // The promises version:
-localforage.setDriver(localforage.LOCALSTORAGE).then(function() {
-    alert(localforage.driver());
+localforage.setDriver('localStorageWrapper').then(function() {
+    alert(localforage.driver);
 });
   => 'localStorageWrapper'
 ```
@@ -202,7 +173,7 @@ localforage.config({
     name        : 'myApp',
     version     : 1.0,
     size        : 4980736, // Size of database, in bytes. WebSQL-only for now.
-    storeName   : 'keyvaluepairs', // Should be alphanumeric, with underscores.
+    storeName   : 'keyvaluepairs',
     description : 'some description'
 });
 ```
@@ -213,22 +184,25 @@ means calling `config()` before using `getItem()`, `setItem()`, `removeItem()`,
 
 ## RequireJS
 
-You can use localForage with [RequireJS](http://requirejs.org/), and even though
-each driver will be loaded asynchronously with a `require()` call, you can use
-localForage without having to confirm that it's ready:
+You can use localForage with [RequireJS](http://requirejs.org/), but note that
+because of the way drivers are loaded using RequireJS, you'll want to make sure
+`localforage.ready`'s Promise has been fulfilled to ensure all of localForage
+is ready to use before you make set/get calls. Essentially, to use localForage
+with RequireJS, your code should look like this:
 
 ```javascript
 define(['localforage'], function(localforage) {
     // As a callback:
-    localforage.setItem('mykey', 'myvalue', console.log);
+    localforage.ready(function() {
+        localforage.setItem('mykey', 'myvalue', console.log);
+    });
 
     // With a Promise:
-    localforage.setItem('mykey', 'myvalue').then(console.log);
+    localforage.ready().then(function() {
+        localforage.setItem('mykey', 'myvalue', console.log);
+    });
 });
 ```
-
-In pre-1.0 versions you had to call `.ready()` to make sure the code was loaded,
-but this is no longer necessary.
 
 ## Web Workers
 
@@ -288,6 +262,23 @@ Sauce Labs tests, run `grunt test:local`.
 
 When you submit a pull request, tests will be run against all browsers that
 localForage supports.
+
+# Frequently Asked Questions
+
+### Will you add (or accept) support for X storage?
+
+Maybe. If it's legacy storage (< IE 8), for a dead platform (WebOS), or
+_really_ obscure (Apple Newton), I'm going to say "no". If it's for a new
+browser technology or a platform-specific driver like Chrome Web Apps or
+Firefox OS, then "yes" is probably the answer.
+
+### Will you add support for node.js?
+
+No. This is a library focused on offline storage inside a web browser. Node.js
+already has lots of storage solutions. The problem this library aims to solve
+is that web browsers differ greatly in their support for a common API for
+dealing with the same kind of data. Node.js doesn't have that problem; if you
+want to use an API, you just add a library to your `package.json`.
 
 # License
 

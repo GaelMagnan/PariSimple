@@ -1,16 +1,16 @@
 angular.module('starter.directives', [])
-.directive('universe', function() {
+.directive('psUniverse', function() {
     return {
         restrict: 'E',
         templateUrl: 'templates/element.html',
         scope:{ elem:'='},
         controller: function($scope, Preferences, PusherServ, auth){
-            Preferences.get_followed_universe($scope.elem.id)
-            .then(function(followed){
-                $scope.elem.followed = followed;
+            Preferences.get_universe($scope.elem.id)
+            .then(function(item){
+                $scope.elem.followed = item && item.followed;
             });
             $scope.setFollowed =function(){
-                Preferences.set_followed_universe($scope.elem.id, $scope.elem.followed);
+                Preferences.store_universe($scope.elem.id, $scope.elem);
                 PusherServ.publish('test_channel','my_event', {
                     'name':auth.profile.nickname, action: 'subscribed to '+ $scope.elem.name}
                 )
@@ -18,18 +18,18 @@ angular.module('starter.directives', [])
         }
     };
 })
-.directive('categorie', function() {
+.directive('psCategorie', function() {
     return {
         restrict: 'E',
         templateUrl: 'templates/element.html',
         scope:{ elem:'='},
         controller: function($scope, Preferences, PusherServ, auth){
-            Preferences.get_followed_categorie($scope.elem.id)
-            .then(function(followed){
-                $scope.elem.followed = followed;
+            Preferences.get_categorie($scope.elem.id)
+            .then(function(item){
+                $scope.elem.followed = item && item.followed;
             });
             $scope.setFollowed =function(){
-                Preferences.set_followed_categorie($scope.elem.id, $scope.elem.followed);
+                Preferences.store_categorie($scope.elem.id, $scope.elem);
                 PusherServ.publish('test_channel','my_event', JSON.stringify({
                     'name':auth.profile.nickname, action: 'subscribed to '+ $scope.elem.name})
                 )
@@ -37,7 +37,7 @@ angular.module('starter.directives', [])
         }
     };
 })
-.directive('sp-event', function(){
+.directive('psEvent', function(){
     return {
         restrict: 'E',
         templateUrl: 'templates/event.html',

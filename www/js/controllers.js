@@ -4,11 +4,10 @@ angular.module('starter.controllers', [])
 })
 
 .controller('PreferencesCtrl', function($scope, QueFaire, store, auth, $location) {
-    $scope.UNI = {name: 'Universes'};
-    $scope.CAT = {name: 'Categories'};
-    $scope.myMode = $scope.CAT;
-    $scope.modes = [$scope.UNI, $scope.CAT];
-    $scope.universe = [];
+
+    $scope.myMode = 'Categories';
+    $scope.modes = ['Universes', 'Categories'];
+    $scope.universes = [];
     $scope.categories = [];
     QueFaire.get_universe().then(function(data){
         $scope.universes = data;
@@ -73,7 +72,15 @@ angular.module('starter.controllers', [])
     $q.all([Preferences.get_all_followed_universes(),
     Preferences.get_all_followed_categories()])
     .then(function(res){
-        QueFaire.get_activities(res[0],res[1], undefined, undefined, undefined, 0, 25)
+        var universes = [],
+            categories = [];
+        for(var i = 0; i < res[0].length;++i){
+            universes.push(res[0][i].id);
+        }
+        for(var i = 0; i < res[1].length;++i){
+            categories.push(res[1][i].id);
+        }
+        QueFaire.get_activities(universes,categories, undefined, undefined, undefined, 0, 25)
         .then(function(act){
             $scope.activities=act;
         });

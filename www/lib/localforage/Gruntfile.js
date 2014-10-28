@@ -15,7 +15,7 @@ module.exports = exports = function(grunt) {
     grunt.initConfig({
         concat: {
             options: {
-                separator: ''
+                separator: '',
             },
             localforage: {
                 files: {
@@ -28,13 +28,13 @@ module.exports = exports = function(grunt) {
                     'dist/localforage.nopromises.js': [
                         'src/drivers/**/*.js',
                         'src/localforage.js'
-                    ]
+                    ],
                 },
                 options: {
                     banner:
                         '/*!\n' +
                         '    localForage -- Offline Storage, Improved\n' +
-                        '    Version 1.0.4\n' +
+                        '    Version 0.9.2\n' +
                         '    http://mozilla.github.io/localForage\n' +
                         '    (c) 2013-2014 Mozilla, Apache License 2.0\n' +
                         '*/\n'
@@ -94,8 +94,7 @@ module.exports = exports = function(grunt) {
                         'http://localhost:9999/test/test.nodriver.html',
                         'http://localhost:9999/test/test.main.html',
                         'http://localhost:9999/test/test.min.html',
-                        'http://localhost:9999/test/test.require.html',
-                        'http://localhost:9999/test/test.callwhenready.html'
+                        'http://localhost:9999/test/test.require.html'
                     ]
                 }
             }

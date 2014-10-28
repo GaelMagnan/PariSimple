@@ -210,7 +210,7 @@ This signouts the user. Deletes the token from the client storage.
 
 If you stored the user's Profile and tokens and want to authenticate the user without making him login again, you can call this method.
 
-You can read more about this subject in [this article]();
+You can read more about this subject in [this article](https://github.com/auth0/auth0-angular/blob/master/docs/storing-information.md#3-authenticating-the-user-on-page-refresh)
 
 #### auth.profile
 

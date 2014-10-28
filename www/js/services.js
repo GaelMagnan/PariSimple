@@ -63,65 +63,71 @@ services.service('Preferences', function($http,$q, $localForage){
         });
     }
 
-    this.get_followed_categorie = function(id){
+    this.get_categorie = function(id){
         return $localForage.getItem("categories." + id);
     };
-    this.get_followed_universe = function(id){
+    this.get_universe = function(id){
         return $localForage.getItem("universes." + id);
     };
-    this.set_followed_universe =function(id, followed){
-        return $localForage.setItem("universes." + id, followed);
+    this.store_universe =function(id, univ){
+        return $localForage.setItem("universes." + id, univ);
     };
-    this.set_followed_categorie =function(id, followed){
-        return $localForage.setItem("categories." + id, followed);
+    this.store_categorie =function(id, cat){
+        return $localForage.setItem("categories." + id, cat);
     };
     this.get_all_followed_universes = function(){
-        var d = $q.defer();
-
-        $localForage.keys().then(function(keys){
-            values = [];
-            promises = [];
-            for(var i =0; i<keys.length;++i){
-                if(keys[i].substring(0,"universes".length) == "universes"){
-                    var def = $q.defer();
-                    $localForage.getItem(keys[i]).then(function(data){
-                        if (data){
-                            values.push(keys[i]);
-                        }
-                        def.resolve()
-                    });
-                    promises.push(def.promise);
-                }
-            }
-            $q.all(promises).then(function(data){
-                d.resolve(values);
-            });
+        return this.search(function(key, value){
+            return key.substring(0,"universes".length) == "universes";
         });
-        return d.promise;
     };
     this.get_all_followed_categories = function(){
-        var d = $q.defer();
-
-        $localForage.keys().then(function(keys){
-            values = [];
-            promises = [];
-            for(var i =0; i<keys.length;++i){
-                if(keys[i].substring(0,"categories".length) == "categories"){
-                    var def = $q.defer();
-                    $localForage.getItem(keys[i]).then(function(data){
-                        if (data){
-                            values.push(keys[i]);
-                        }
-                        def.resolve()
-                    });
-                    promises.push(def.promise);
-                }
-            }
-            $q.all(promises).then(function(data){
-                d.resolve(values);
-            });
+        return this.search(function(key, value){
+            return key.substring(0,"categories".length) == "categories";
         });
-        return d.promise;
+    };
+    //until localforage is updated
+    this.search = function search(filter) {
+        // throw error on undefined key
+        if(angular.isUndefined(filter)) {
+            throw new Error("You must define a filter");
+        }
+        if(!angular.isFunction(filter)) {
+            throw new Error("filter must be a function");
+        }
+        var deferred = $q.defer(),
+            args = arguments;
+
+        $localForage.keys().then(function success(keyList) {
+            var promises = [],
+                datas = [],
+                ret = [];
+            angular.forEach(keyList, function(key){
+                var d = $q.defer()
+                $localForage.getItem(key)
+                .then(function success(item) {
+                    datas.push({'key': key, 'value': item});
+                    d.resolve();
+                },function failure(err){
+                    console.log(data);
+                });
+                promises.push(d.promise);
+            });
+            $q.all(promises).then(function(){
+                angular.forEach(datas, function(data){
+                    var key = data['key'],
+                        value = data['value'];
+                    if(filter(key, value))
+                        ret.push(value);
+                });
+                deferred.resolve(ret);
+            },function(err){
+                console.log(data);
+            });
+        }, function error(data) {
+            console.log(data);
+            deferred.reject(data);
+        });
+        return deferred.promise;
     };
 });
 

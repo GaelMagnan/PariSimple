@@ -126,7 +126,7 @@
         }
       },
       'Auth0Lock': {
-        signin: 'showSignin',
+        signin: 'show',
         signup: 'showSignup',
         reset: 'showReset',
         library: function() {

@@ -1,13 +1,15 @@
 <ion-view title="Preferences">
  <ion-nav-buttons side="right"><button ng-click="logout()">Logout</button></ion-nav-buttons>
   <ion-content class="padding">
-      <select ng-model="myMode" ng-options="mode.name for mode in modes">
+      <select ng-model="myMode" ng-options="mode for mode in modes">
       </select>
-      <ion-list ng-hide='{{myMode!=UNI}}'>
-          <ion-item ng-repeat="univ in universes" ng-show='{{myMode==UNI}}'><universe elem='univ'/></ion-item>
-      </ion-list>
-      <ion-list ng-hide='{{myMode!=CAT}}'>
-          <ion-item ng-repeat="cat in categories" ng-hide='{{myMode!=CAT}}'><universe elem='cat'/></ion-item>
-      </ion-list>
+      <div ng-switch="myMode">
+          <ion-list ng-switch-when='Universes'>
+              <ion-item ng-repeat="univ in universes"><ps-universe elem='univ'/></ion-item>
+          </ion-list>
+          <ion-list ng-switch-when='Categories'>
+              <ion-item ng-repeat="cat in categories"><ps-categorie elem='cat'/></ion-item>
+          </ion-list>
+      <div>
   </ion-content>
 </ion-view>

@@ -9,6 +9,9 @@
     var Promise = (typeof module !== 'undefined' && module.exports) ?
                   require('promise') : this.Promise;
 
+    var db = null;
+    var dbInfo = {};
+
     // Initialize IndexedDB; fall back to vendor-prefixed versions if needed.
     var indexedDB = indexedDB || this.indexedDB || this.webkitIndexedDB ||
                     this.mozIndexedDB || this.OIndexedDB ||
@@ -22,11 +25,6 @@
     // Open the IndexedDB database (automatically creates one if one didn't
     // previously exist), using any options set in the config.
     function _initStorage(options) {
-        var self = this;
-        var dbInfo = {
-            db: null
-        };
-
         if (options) {
             for (var i in options) {
                 dbInfo[i] = options[i];
@@ -43,27 +41,17 @@
                 openreq.result.createObjectStore(dbInfo.storeName);
             };
             openreq.onsuccess = function() {
-                dbInfo.db = openreq.result;
-                self._dbInfo = dbInfo;
+                db = openreq.result;
                 resolve();
             };
         });
     }
 
     function getItem(key, callback) {
-        var self = this;
-
-        // Cast the key to a string, as that's all we can set as a key.
-        if (typeof key !== 'string') {
-            window.console.warn(key +
-                                ' used as a key, but it is not a string.');
-            key = String(key);
-        }
-
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly')
+        var _this = this;
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readonly')
                               .objectStore(dbInfo.storeName);
                 var req = store.get(key);
 
@@ -73,33 +61,27 @@
                         value = null;
                     }
 
+                    deferCallback(callback,value);
+
                     resolve(value);
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeDeferedCallback(promise, callback);
-        return promise;
     }
 
     function setItem(key, value, callback) {
-        var self = this;
-
-        // Cast the key to a string, as that's all we can set as a key.
-        if (typeof key !== 'string') {
-            window.console.warn(key +
-                                ' used as a key, but it is not a string.');
-            key = String(key);
-        }
-
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readwrite')
+        var _this = this;
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readwrite')
                               .objectStore(dbInfo.storeName);
 
                 // The reason we don't _save_ null is because IE 10 does
@@ -122,32 +104,26 @@
                         value = null;
                     }
 
+                    deferCallback(callback, value);
+
                     resolve(value);
                 };
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeDeferedCallback(promise, callback);
-        return promise;
     }
 
     function removeItem(key, callback) {
-        var self = this;
-
-        // Cast the key to a string, as that's all we can set as a key.
-        if (typeof key !== 'string') {
-            window.console.warn(key +
-                                ' used as a key, but it is not a string.');
-            key = String(key);
-        }
-
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readwrite')
+        var _this = this;
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readwrite')
                               .objectStore(dbInfo.storeName);
 
                 // We use a Grunt task to make this safe for IE and some
@@ -157,10 +133,17 @@
                 // fixes this for us now.
                 var req = store.delete(key);
                 req.onsuccess = function() {
+
+                    deferCallback(callback);
+
                     resolve();
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(req.error);
+                    }
+
                     reject(req.error);
                 };
 
@@ -170,77 +153,84 @@
                 req.onabort = function(event) {
                     var error = event.target.error;
                     if (error === 'QuotaExceededError') {
+                        if (callback) {
+                            callback(error);
+                        }
+
                         reject(error);
                     }
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeDeferedCallback(promise, callback);
-        return promise;
     }
 
     function clear(callback) {
-        var self = this;
-
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readwrite')
+        var _this = this;
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readwrite')
                               .objectStore(dbInfo.storeName);
                 var req = store.clear();
 
                 req.onsuccess = function() {
+                    deferCallback(callback);
+
                     resolve();
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeDeferedCallback(promise, callback);
-        return promise;
     }
 
     function length(callback) {
-        var self = this;
-
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly')
+        var _this = this;
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readonly')
                               .objectStore(dbInfo.storeName);
                 var req = store.count();
 
                 req.onsuccess = function() {
+                    if (callback) {
+                        callback(req.result);
+                    }
+
                     resolve(req.result);
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeCallback(promise, callback);
-        return promise;
     }
 
     function key(n, callback) {
-        var self = this;
-
-        var promise = new Promise(function(resolve, reject) {
+        var _this = this;
+        return new Promise(function(resolve, reject) {
             if (n < 0) {
+                if (callback) {
+                    callback(null);
+                }
+
                 resolve(null);
 
                 return;
             }
 
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly')
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readonly')
                               .objectStore(dbInfo.storeName);
 
                 var advanced = false;
@@ -249,6 +239,10 @@
                     var cursor = req.result;
                     if (!cursor) {
                         // this means there weren't enough keys
+                        if (callback) {
+                            callback(null);
+                        }
+
                         resolve(null);
 
                         return;
@@ -257,6 +251,10 @@
                     if (n === 0) {
                         // We have the first key, return it if that's what they
                         // wanted.
+                        if (callback) {
+                            callback(cursor.key);
+                        }
+
                         resolve(cursor.key);
                     } else {
                         if (!advanced) {
@@ -266,28 +264,32 @@
                             cursor.advance(n);
                         } else {
                             // When we get here, we've got the nth key.
+                            if (callback) {
+                                callback(cursor.key);
+                            }
+
                             resolve(cursor.key);
                         }
                     }
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeCallback(promise, callback);
-        return promise;
     }
 
     function keys(callback) {
-        var self = this;
+        var _this = this;
 
-        var promise = new Promise(function(resolve, reject) {
-            self.ready().then(function() {
-                var dbInfo = self._dbInfo;
-                var store = dbInfo.db.transaction(dbInfo.storeName, 'readonly')
+        return new Promise(function(resolve, reject) {
+            _this.ready().then(function() {
+                var store = db.transaction(dbInfo.storeName, 'readonly')
                               .objectStore(dbInfo.storeName);
 
                 var req = store.openCursor();
@@ -297,6 +299,10 @@
                     var cursor = req.result;
 
                     if (!cursor) {
+                        if (callback) {
+                            callback(keys);
+                        }
+
                         resolve(keys);
                         return;
                     }
@@ -306,33 +312,14 @@
                 };
 
                 req.onerror = function() {
+                    if (callback) {
+                        callback(null, req.error);
+                    }
+
                     reject(req.error);
                 };
-            }).catch(reject);
+            }, reject);
         });
-
-        executeCallback(promise, callback);
-        return promise;
-    }
-
-    function executeCallback(promise, callback) {
-        if (callback) {
-            promise.then(function(result) {
-                callback(null, result);
-            }, function(error) {
-                callback(error);
-            });
-        }
-    }
-
-    function executeDeferedCallback(promise, callback) {
-        if (callback) {
-            promise.then(function(result) {
-                deferCallback(callback, result);
-            }, function(error) {
-                callback(error);
-            });
-        }
     }
 
     // Under Chrome the callback is called before the changes (save, clear)
@@ -340,10 +327,10 @@
     // call stack to be empty.
     // For more info : https://github.com/mozilla/localForage/issues/175
     // Pull request : https://github.com/mozilla/localForage/pull/178
-    function deferCallback(callback, result) {
+    function deferCallback(callback, value) {
         if (callback) {
             return setTimeout(function() {
-                return callback(null, result);
+                return callback(value);
             }, 0);
         }
     }
@@ -369,4 +356,4 @@
     } else {
         this.asyncStorage = asyncStorage;
     }
-}).call(window);
+}).call(this);

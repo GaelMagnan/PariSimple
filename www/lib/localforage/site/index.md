@@ -49,13 +49,10 @@ IndexedDB or WebSQL support. Asynchronous storage is available in the current
 versions of all major browsers: Chrome, Firefox, IE, and Safari
 (including Safari Mobile).
 
-**localForage offers a callback API as well as support for the
-[ES6 Promises API][]**, so you can use whichever you prefer.
+localForage supports both a callback-based and Promises-based API, so you can
+use whichever you prefer. At the current time, these docs use the callback API.
 
-[Download localforage.min.js][download]
-
-[download]: https://mozilla.github.io/localForage/localforage.min.js
-[ES6 Promises API]: https://developer.mozilla.org/docs/Web/JavaScript/Reference/Global_Objects/Promise
+[Download localforage.min.js](http://mozilla.github.io/localForage/localforage.min.js)
 
 # Installation
 
@@ -65,7 +62,7 @@ bower install localforage
 ```
 ``` html
 <script src="localforage.js"></script>
-<script>localforage.getItem('my alert', alert);</script>
+<script>localforage.getItem('my alert').then(alert);</script>
 ```
 
 To use localForage, [download the latest release](https://github.com/mozilla/localForage/releases) or install with [bower](http://bower.io/) (`bower install localforage`).
@@ -81,26 +78,18 @@ These APIs deal with getting and setting data in the offline store.
 ## getItem
 
 ```javascript
-localforage.getItem('somekey', function(err, value) {
+localforage.getItem('somekey', function(value) {
     // Run this code once the value has been
     // loaded from the offline store.
-    console.log(value);
-});
-localforage.getItem('somekey').then(function(value) {
-    // The same code, but using ES6 Promises.
     console.log(value);
 });
 ```
 
 ```coffeescript
-localforage.getItem "somekey", (err, value) ->
+localforage.getItem "somekey", (value) ->
   # Run this code once the value has been loaded
   # from the offline store.
   console.log value
-
-localforage.getItem("somekey").then (value) ->
-  # The same code, but using ES6 Promises.
-  console.log(value)
 ```
 
 `getItem(key, successCallback)`
@@ -118,13 +107,13 @@ If the key does not exist, `getItem()` will return `null`.
 ## setItem
 
 ```javascript
-localforage.setItem('somekey', 'some value', function(err, value) {
+localforage.setItem('somekey', 'some value', function(value) {
     // Do other things once the value has been saved.
     console.log(value);
 });
 
 // Unlike localStorage, you can store non-strings.
-localforage.setItem('my array', [1, 2, 'three'], function(err, value) {
+localforage.setItem('my array', [1, 2, 'three'], function(value) {
     // This will output `1`.
     console.log(value[0]);
 });
@@ -146,12 +135,12 @@ request.addEventListener('readystatechange', function() {
 ```
 
 ```coffeescript
-localforage.setItem "somekey", "some value", (err, value) ->
+localforage.getItem "somekey", "some value" (value) ->
   # Do other things once the value has been saved.
   console.log value
 
 # Unlike localStorage, you can store non-strings.
-localforage.setItem "my array", [1, 2, "three"], (err, value) ->
+localforage.setItem "my array", [1, 2, "three"], (value) ->
   # This will output `1`.
   console.log value[0]
 
@@ -241,14 +230,14 @@ Removes every key from the database, returning it to a blank slate.
 ## length
 
 ```javascript
-localforage.length(function(err, numberOfKeys) {
+localforage.length(function(numberOfKeys) {
     // Outputs the length of the database.
     console.log(numberOfKeys);
 });
 ```
 
 ```coffeescript
-localforage.length (err, numberOfKeys) ->
+localforage.length (numberOfKeys) ->
   # Outputs the length of the database.
   console.log numberOfKeys
 ```
@@ -260,14 +249,14 @@ Gets the number of keys in the offline store (i.e. its "length").
 ## key
 
 ```javascript
-localforage.key(2, function(err, keyName) {
+localforage.key(2, function(keyName) {
     // Name of the key.
     console.log(keyName);
 });
 ```
 
 ```coffeescript
-localforage.key 2, (err, keyName) ->
+localforage.key 2, (keyName) ->
   # Name of the key.
   console.log keyName
 ```
@@ -284,14 +273,14 @@ Get the name of a key based on its ID.
 ## keys
 
 ```javascript
-localforage.keys(function(err, keys) {
+localforage.keys(function(keys) {
     // An array of all the key names.
     console.log(keys);
 });
 ```
 
 ```coffeescript
-localforage.keys (err, keys) ->
+localforage.keys (keys) ->
   # An array of all the key names.
   console.log keys
 ```
@@ -310,18 +299,18 @@ i.e. before you call `getItem()` or `length()`, etc.)
 
 ```javascript
 // Force localStorage to be the backend driver.
-localforage.setDriver(localforage.LOCALSTORAGE);
+localforage.setDriver('localStorageWrapper');
 
 // Supply a list of drivers, in order of preference.
-localforage.setDriver([localforage.WEBSQL, localforage.INDEXEDDB]);
+localforage.setDriver(['WebSQLStorage', 'localStorageWrapper']);
 ```
 
 ```coffeescript
 # Force localStorage to be the backend driver.
-localforage.setDriver localforage.LOCALSTORAGE
+localforage.setDriver "localStorageWrapper"
 
 # Supply a list of drivers, in order of preference.
-localforage.setDriver [localforage.WEBSQL, localforage.INDEXEDDB]
+localforage.setDriver ["WebSQLStorage", "localStorageWrapper"]
 ```
 
 `setDriver(driverName)`<br>
@@ -337,11 +326,7 @@ order:
 3. localStorage
 
 If you would like to force usage of a particular driver you can use
-`setDriver()` with one or more of the following parameters.
-
-* localforage.INDEXEDDB
-* localforage.WEBSQL
-* localforage.LOCALSTORAGE
+`setDriver()`.
 
 <aside class="notice">
   If the backend you're trying to load isn't available on the user's browser,
@@ -358,22 +343,6 @@ If you would like to force usage of a particular driver you can use
 localforage.config({
     name: 'Hipster PDA App'
 });
-
-// This will force localStorage as the storage
-// driver even if another is available. You can
-// use this instead of `setDriver()`.
-localforage.config({
-    driver: localforage.LOCALSTORAGE,
-    name: 'I-heart-localStorage'
-});
-
-// This will use a different driver order.
-localforage.config({
-    driver: [localforage.WEBSQL,
-             localforage.INDEXEDDB,
-             localforage.LOCALSTORAGE],
-    name: 'WebSQL-Rox'
-});
 ```
 
 ```coffeescript
@@ -381,21 +350,6 @@ localforage.config({
 # to "Hipster PDA App".
 localforage.config
   name: "Hipster PDA App"
-
-
-# This will force localStorage as the storage
-# driver even if another is available. You can
-# use this instead of `setDriver()`.
-localforage.config
-  driver: localforage.LOCALSTORAGE
-  name: "I-heart-localStorage"
-
-# This will use a different driver order.
-localforage.config
-  driver: [localforage.WEBSQL,
-           localforage.INDEXEDDB,
-           localforage.LOCALSTORAGE]
-  name: "WebSQL-Rox"
 ```
 
 `config(options)`
@@ -407,11 +361,6 @@ changes, so you can call `config()` then `setDriver()`. The following config
 values can be set:
 
 <dl>
-  <dt>driver</dt>
-  <dd>
-    The preferred driver(s) to use. Same format as what is passed to `setDriver()`, above.<br>
-    Default: <code>[localforage.INDEXEDDB, localforage.WEBSQL, localforage.LOCALSTORAGE]</code>
-  </dd>
   <dt>name</dt>
   <dd>
     The name of the database. May appear during storage limit prompts.
@@ -428,9 +377,7 @@ values can be set:
     The name of the datastore. In IndexedDB this is the
     <code>dataStore</code>, in WebSQL this is the name of the key/value
     table in the database. In localStorage, this is used as a key prefix for
-    all keys stored in localStorage. <strong>Must be alphanumeric,
-    with underscores.</strong> Any non-alphanumeric characters will be converted
-    to underscores.<br>
+    all keys stored in localStorage.<br>
     Default: <code>'keyvaluepairs'</code>
   </dd>
   <dt>version</dt>

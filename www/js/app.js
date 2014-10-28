@@ -119,7 +119,7 @@ angular.module('starter', ['ionic',  'auth0', 'angular-storage', 'angular-jwt', 
       url: '/search',
       views: {
         'tab-search': {
-          templateUrl: 'templates/search.html',
+          templateUrl: 'templates/tab-search.html',
           controller: 'SearchCtrl'
         }
       }
